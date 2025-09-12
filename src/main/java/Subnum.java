@@ -1,4 +1,4 @@
-public class sub {
+public class Subnum {
     public int sub(int a, int b) {
         return a - b;
     }
@@ -6,7 +6,8 @@ public class sub {
    public static void main(String[] args) {
         int x = 10;
         int y = 4;
-        int result = sub(x, y);
+        Subnum s1 = new Subnum();
+        int result = s1.sub(x, y);
 
         System.out.println("Résultat de " + x + " - " + y + " = " + result);
     }
