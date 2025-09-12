@@ -7,7 +7,7 @@ public class SubTest {
     public void testSubPositiveNumbers() {
         sub calculator = new sub();
         int result = calculator.sub(10, 5);
-        assertEquals(5, result);
+        assertEquals(123, result);
     }
 
     @Test
@@ -31,4 +31,3 @@ public class SubTest {
         assertEquals(8, result);
     }
 }
-
