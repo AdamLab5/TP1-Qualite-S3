@@ -1,0 +1,377 @@
+2. Les 5 erreurs trouvées dans le site original
+
+Le site Campus Explorer présente des activités sur cinq campus. L'objectif du TP est de conserver toutes les fonctions obligatoires tout en réduisant les transferts de données et les traitements inutiles.
+
+Voici le diagnostic que tu peux utiliser dans ta première diapositive et dans ton annexe.
+
+Les emplacements indiqués ci-dessous correspondent au code de départ fourni dans ton ZIP.
+
+Problème 1 — Le catalogue est téléchargé à chaque frappe
+Transferts réseau inutiles
+
+Fichier concerné : app.js
+
+Fonction concernée : onSearch()
+
+Avant : à chaque fois que l'utilisateur saisit une lettre dans la barre de recherche, le navigateur fait une nouvelle requête vers l'API pour récupérer le catalogue.
+
+Le catalogue représente environ 2 Mo de données. Si l'utilisateur saisit dix caractères, il peut donc provoquer plusieurs téléchargements du même contenu.
+
+Pourquoi c'est un problème ?
+
+Le navigateur télécharge plusieurs fois des données déjà disponibles.
+
+Le serveur doit traiter des requêtes supplémentaires.
+
+Cela augmente les transferts réseau et le temps de réponse.
+
+Modification retenue : télécharger le catalogue une seule fois au démarrage, puis effectuer la recherche directement dans les données conservées en mémoire.
+
+Problème 2 — Les statistiques sont actualisées toutes les deux secondes
+Requêtes répétées
+
+Fichiers concernés : app.js et server.py
+
+Code concerné : setInterval(pollStats, 2000)
+
+Avant : le navigateur appelle /api/stats toutes les deux secondes, même si personne n'utilise le site.
+
+Cela représente 30 requêtes par minute pour les seules statistiques.
+
+Pourquoi c'est un problème ?
+
+Le serveur relit le fichier JSON pour calculer les statistiques à chaque appel. Or les données sont fictives et ne changent pas en temps réel.
+
+Modification retenue : calculer le nombre de sessions, de campus et d'organisateurs à partir du catalogue déjà téléchargé. Supprimer l'actualisation automatique.
+
+Problème 3 — Le calcul des recommandations est inutilement coûteux
+Calculs évitables
+
+Fichier concerné : app.js
+
+Fonction concernée : buildRecommendations()
+
+Avant : le programme compare les activités entre elles pour produire des recommandations.
+
+Avec n activités, le nombre de comparaisons peut croître comme n
+2
+.
+
+Pourquoi c'est un problème ?
+
+Le calcul utilise du temps processeur pour une fonctionnalité secondaire qui n'est pas indispensable à la consultation et à la recherche dans le catalogue.
+
+Modification retenue : supprimer le calcul automatique des recommandations et leur affichage, sans supprimer aucune activité du catalogue.
+
+Problème 4 — Les images sont trop lourdes
+Poids des ressources
+
+Fichiers concernés : index.html et assets/
+
+Images concernées : hero.png et les images de galerie.
+
+Les fichiers d'illustration ont des tailles importantes :
+
+Image
+
+	
+
+Taille approximative
+
+
+
+
+hero.png
+
+	
+
+8,7 Mo
+
+
+
+
+gallery_1.jpg à gallery_4.jpg
+
+	
+
+0,9 à 1,9 Mo chacune
+
+Pourquoi c'est un problème ?
+
+Les images peuvent représenter une grande partie des données téléchargées, notamment sur un téléphone ou avec une connexion lente.
+
+Modification retenue : ajouter le chargement différé aux images de galerie avec loading="lazy" et le décodage asynchrone avec decoding="async".
+
+La conversion du grand visuel en WebP ou AVIF reste une amélioration à réaliser ultérieurement.
+
+Problème 5 — Le serveur ajoute des données inutiles à la réponse API
+Traitements serveur
+
+Fichier concerné : server.py
+
+Fonction concernée : prepare_catalogue()
+
+Avant : pour chaque activité, le serveur crée notamment :
+
+une description HTML et une version texte ;
+
+un résumé court ;
+
+un titre en majuscules ;
+
+des mots-clés calculés ;
+
+un score de recommandation.
+
+Ces informations augmentent la taille de la réponse et nécessitent des calculs supplémentaires.
+
+Modification retenue : retourner uniquement les données sources utiles à l'interface et supprimer les champs calculés qui ne sont plus exploités.
+
+
+3. Les fichiers modifiés : comment et pourquoi
+
+Voici la liste à inclure dans ta deuxième diapositive et à expliquer pendant la présentation.
+
+Fichier
+
+	
+
+Comment il est modifié
+
+	
+
+Pourquoi
+
+
+
+
+app.js
+
+	
+
+Chargement unique du catalogue et filtres locaux
+
+	
+
+Éviter les téléchargements répétés
+
+
+
+
+app.js
+
+	
+
+Suppression du polling des statistiques
+
+	
+
+Éviter les requêtes périodiques
+
+
+
+
+app.js
+
+	
+
+Suppression du calcul des recommandations
+
+	
+
+Réduire les calculs inutiles
+
+
+
+
+server.py
+
+	
+
+Suppression des champs calculés inutilisés
+
+	
+
+Réduire le traitement serveur et la réponse API
+
+
+
+
+server.py
+
+	
+
+Autorisation de revalidation du cache
+
+	
+
+Permettre au navigateur de vérifier si les données ont changé
+
+
+
+
+index.html
+
+	
+
+Chargement différé des images de galerie et script defer
+
+	
+
+Éviter de bloquer le chargement et charger les images au besoin
+
+
+
+
+index.html
+
+	
+
+Suppression du bandeau animé et de la newsletter fictive
+
+	
+
+Retirer des fonctions secondaires sans service réel
+
+
+
+
+styles.css
+
+	
+
+Adaptation des styles aux commandes HTML natives et aux écrans mobiles
+
+	
+
+Conserver une interface utilisable après les changements
+
+Les fichiers data/products.json et les données des sessions doivent être conservés. Le TP demande explicitement de ne supprimer aucune session.
+
+4. Les trois diapositives à présenter
+
+Le PowerPoint fourni contient ces trois parties. Voici le texte en français que tu peux utiliser à l'oral.
+
+Diapositive 1 — Diagnostic
+
+Titre : État initial et problèmes identifiés
+
+Chaque frappe dans la recherche provoque un nouveau téléchargement du catalogue.
+
+Les statistiques sont demandées toutes les deux secondes, même sans utilisateur.
+
+Le calcul des recommandations effectue des comparaisons inutiles entre les activités.
+
+Les images d'illustration sont volumineuses et ne sont pas toutes chargées de manière différée.
+
+Le serveur génère des données supplémentaires qui ne sont pas utilisées.
+
+Rattachements RGESN 2024 :
+
+Critère relatif à la pertinence des animations : bandeau défilant permanent.
+
+Critère relatif au choix des médias : images trop lourdes pour leur fonction illustrative.
+
+Critère relatif à la sobriété des composants et des traitements : requêtes répétées sans action utile.
+
+Diapositive 2 — Modifications réalisées
+
+Titre : Réduction des ressources mobilisées
+
+Modification
+
+	
+
+Résultat attendu
+
+
+
+
+Recherche locale
+
+	
+
+Moins de requêtes et de transferts
+
+
+
+
+Suppression du polling
+
+	
+
+Moins de sollicitations du serveur
+
+
+
+
+Suppression des recommandations
+
+	
+
+Moins de calculs
+
+
+
+
+Images différées
+
+	
+
+Moins de ressources chargées immédiatement
+
+
+
+
+Suppression des fonctions fictives
+
+	
+
+Interface plus simple et moins de traitements
+
+Action écartée : la conversion complète des images en WebP ou AVIF n'a pas été réalisée dans le temps imparti. Elle demanderait de produire plusieurs variantes et de vérifier leur qualité visuelle.
+
+Diapositive 3 — Bilan et vérifications
+
+Titre : Résultats et limites
+
+Fonctionnalités conservées :
+
+Consultation de toutes les sessions.
+
+Recherche sans distinction de casse ni d'accents, avec plusieurs mots.
+
+Combinaison des filtres catégorie et campus.
+
+Affichage des fiches complètes et classement chronologique.
+
+Vérifications à effectuer dans le navigateur :
+
+Comparer le nombre de requêtes avant et après.
+
+Vérifier l'absence de requêtes pendant la recherche.
+
+Tester les filtres, les fiches, les erreurs de chargement et les résultats vides.
+
+Vérifier le clavier et l'affichage à 360 px.
+
+Conclusion à dire à l'oral :
+
+« Les modifications visent à réduire les transferts de données et les calculs inutiles, tout en conservant les fonctions essentielles du catalogue. Une réduction des requêtes ou du poids transféré ne constitue pas une mesure directe de consommation énergétique ou d'émissions de CO₂. »
+
+5. Annexe courte à rendre
+
+Le fichier Annexe_diagnostic.md téléchargeable plus haut contient le diagnostic détaillé et les rattachements au RGESN.
+
+Avant de le déposer, vérifie les intitulés exacts et les moyens de contrôle des trois critères dans le référentiel officiel : RGESN 2024 — Arcep 
+.
+
+L'annexe doit comporter :
+
+Les cinq problèmes, avec leur fichier et leur preuve.
+
+Les trois critères RGESN, avec numéro, intitulé exact, observation et lien avec le problème.
+
+Les modifications réalisées et les limites restantes.
+
+Important : le rattachement RGESN est une justification pédagogique, pas une déclaration de conformité complète. Vérifie également les modifications dans ton navigateur avant de présenter les résultats comme acquis.
